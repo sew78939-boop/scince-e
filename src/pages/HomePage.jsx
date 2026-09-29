@@ -1,69 +1,218 @@
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { ContactShadows, Float, Line, Text } from '@react-three/drei'
-import { useEffect, useRef, useState } from 'react'
+import { Center, ContactShadows, Line, Text, Text3D } from '@react-three/drei'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import helvetikerBold from 'three/examples/fonts/helvetiker_bold.typeface.json'
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
+import { CatmullRomCurve3, ExtrudeGeometry, PMREMGenerator, Shape, Vector3 } from 'three'
 import { services, projectPillars, contactInfo } from '../data/siteData'
 
 function ScienceHeroModel() {
   const ref = useRef()
-  const { size } = useThree()
+  const orbitRef = useRef()
+  const { gl, scene, size } = useThree()
   const mobile = size.width < 760
   const compact = size.width < 1100 || size.width / size.height < 1.3
-  const modelScale = mobile ? 0.16 : compact ? 0.3 : 0.36
-  const wireframeScale = mobile ? 0.16 : compact ? 0.22 : 0.28
-  const blueScale = mobile ? 0.32 : compact ? 0.4 : 0.45
-  const wireframePosition = mobile ? [0, 0.12, -0.22] : compact ? [0, 0.2, -0.26] : [0, 0.25, -0.3]
-  const bluePosition = mobile ? [0, -0.32, 0.2] : compact ? [0, -0.45, 0.24] : [0, -0.55, 0.28]
+  const logoScale = mobile ? 0.58 : compact ? 0.76 : 0.84
+  const logoShape = useMemo(() => {
+    const centerline = new CatmullRomCurve3([
+      new Vector3(-0.39, 0.72, 0),
+      new Vector3(-0.12, 0.9, 0),
+      new Vector3(0.24, 0.81, 0),
+      new Vector3(0.39, 0.57, 0),
+      new Vector3(0.27, 0.37, 0),
+      new Vector3(0.01, 0.19, 0),
+      new Vector3(-0.26, 0.01, 0),
+      new Vector3(-0.35, -0.2, 0),
+      new Vector3(-0.25, -0.42, 0),
+      new Vector3(0.02, -0.58, 0),
+      new Vector3(0.29, -0.49, 0),
+      new Vector3(0.44, -0.31, 0),
+    ])
+    const samples = centerline.getPoints(80)
+    const leftEdge = []
+    const rightEdge = []
+
+    samples.forEach((point, index) => {
+      const tangent = centerline.getTangent(index / (samples.length - 1))
+      const halfWidth = 0.105
+      const normalX = -tangent.y * halfWidth
+      const normalY = tangent.x * halfWidth
+      leftEdge.push([point.x + normalX, point.y + normalY])
+      rightEdge.push([point.x - normalX, point.y - normalY])
+    })
+
+    const shape = new Shape()
+    shape.moveTo(...leftEdge[0])
+    leftEdge.slice(1).forEach((point) => shape.lineTo(...point))
+    rightEdge.reverse().forEach((point) => shape.lineTo(...point))
+    shape.closePath()
+
+    return { centerline, shape }
+  }, [])
+  const logoGeometry = useMemo(() => new ExtrudeGeometry(logoShape.shape, {
+    depth: 0.17,
+    bevelEnabled: true,
+    bevelSegments: 6,
+    bevelSize: 0.035,
+    bevelThickness: 0.035,
+    curveSegments: 16,
+    steps: 1,
+  }), [logoShape])
+  const orbitalCurves = useMemo(() => [
+    { start: 0.2, end: Math.PI - 0.2, radiusX: 0.55, radiusY: 0.89, centerY: 0, z: -0.04 },
+    { start: Math.PI + 0.26, end: Math.PI * 2 - 0.28, radiusX: 0.55, radiusY: 0.89, centerY: 0, z: 0.27 },
+  ].map(({ start, end, radiusX, radiusY, centerY, z }) => {
+    const points = Array.from({ length: 36 }, (_, index) => {
+      const angle = start + ((end - start) * index) / 35
+      return new Vector3(
+        Math.cos(angle) * radiusX,
+        centerY + Math.sin(angle) * radiusY,
+        z + Math.sin(angle * 2) * 0.045,
+      )
+    })
+
+    return new CatmullRomCurve3(points)
+  }), [])
+
+  useEffect(() => {
+    const pmrem = new PMREMGenerator(gl)
+    const room = new RoomEnvironment()
+    const environment = pmrem.fromScene(room, 0.04).texture
+    scene.environment = environment
+
+    return () => {
+      if (scene.environment === environment) scene.environment = null
+      environment.dispose()
+      room.dispose()
+      pmrem.dispose()
+    }
+  }, [gl, scene])
 
   useFrame(({ clock }) => {
     const elapsed = clock.getElapsedTime()
 
     if (ref.current) {
-      ref.current.rotation.y = elapsed * 0.35
-      ref.current.rotation.x = Math.sin(elapsed * 0.7) * 0.35
-      ref.current.position.y = Math.sin(elapsed * 1.5) * 0.08
+      ref.current.rotation.y = Math.sin(elapsed * 0.12) * 0.035
+      ref.current.rotation.x = Math.sin(elapsed * 0.2) * 0.025
+      ref.current.rotation.z = Math.sin(elapsed * 0.16) * 0.012
+      ref.current.position.y = -0.15 + Math.sin(elapsed * 0.72) * 0.06
+      ref.current.position.z = Math.sin(elapsed * 0.38) * 0.04
     }
+
+    if (orbitRef.current) orbitRef.current.rotation.z = -elapsed * 0.08
   })
 
   return (
-    <group ref={ref} position={[0, 0.2, 0]}>
-      <Float speed={1.8} rotationIntensity={0.3} floatIntensity={1.2}>
+    <>
+      <group ref={ref} position={[0, -0.15, 0]} scale={logoScale}>
         <group>
-          <Text
-            position={[0, 0, 0]}
-            fontSize={1.2 * modelScale}
-            letterSpacing={0.12 * modelScale}
-            color="#dfe7f4"
-            anchorX="center"
-            anchorY="middle"
-            material-toneMapped={false}
-          >
-            SCIENCE
-          </Text>
-
-          <group position={wireframePosition}>
-            <mesh scale={wireframeScale} rotation={[0.4, 0.3, 0.35]} raycast={() => null}>
-              <torusKnotGeometry args={[1.9, 0.34, 220, 28]} />
-              <meshStandardMaterial color="#151d2a" metalness={0.9} roughness={0.3} wireframe />
-            </mesh>
+          <group ref={orbitRef} position={[0.033, 0.441, 0]}>
+            {orbitalCurves.map((curve, index) => (
+              <mesh key={index} raycast={() => null}>
+                <tubeGeometry args={[curve, 72, 0.027, 12, false]} />
+                <meshPhysicalMaterial
+                  color={index === 0 ? '#94631f' : '#d3a64f'}
+                  metalness={0.99}
+                  roughness={0.15}
+                  clearcoat={0.95}
+                  clearcoatRoughness={0.1}
+                />
+              </mesh>
+            ))}
+            {[
+              [0.539, 0.177, -0.015],
+              [-0.539, 0.177, -0.015],
+              [-0.514, -0.229, 0.315],
+              [0.508, -0.246, 0.315],
+            ].map((position, index) => (
+              <mesh key={index} position={position} raycast={() => null}>
+                <icosahedronGeometry args={[0.045, 2]} />
+                <meshPhysicalMaterial
+                  color={index === 0 ? '#f0d18a' : '#b17a29'}
+                  metalness={0.99}
+                  roughness={0.13}
+                  clearcoat={1}
+                  clearcoatRoughness={0.08}
+                />
+              </mesh>
+            ))}
           </group>
-
-          <group position={bluePosition}>
-            <mesh scale={blueScale} raycast={() => null}>
-              <icosahedronGeometry args={[0.9, 1]} />
-              <meshStandardMaterial
-                color="#b8d7ff"
-                emissive="#10253d"
-                emissiveIntensity={0.7}
-                metalness={1}
-                roughness={0.2}
+          <mesh geometry={logoGeometry} position={[0, 0.28, 0]} raycast={() => null}>
+            <meshPhysicalMaterial
+              color="#d0a044"
+              metalness={0.99}
+              roughness={0.16}
+              clearcoat={0.95}
+              clearcoatRoughness={0.1}
+              emissive="#281704"
+              emissiveIntensity={0.04}
+            />
+          </mesh>
+          <mesh position={[0, 0.28, 0.22]} raycast={() => null}>
+            <tubeGeometry args={[logoShape.centerline, 96, 0.012, 8, false]} />
+            <meshPhysicalMaterial
+              color="#754a16"
+              metalness={0.96}
+              roughness={0.23}
+              clearcoat={0.65}
+              clearcoatRoughness={0.18}
+            />
+          </mesh>
+          <Center position={[0, -0.7, 0]}>
+            <Text3D
+              font={helvetikerBold}
+              size={0.32}
+              height={0.09}
+              bevelEnabled
+              bevelSegments={4}
+              bevelSize={0.012}
+              bevelThickness={0.016}
+              curveSegments={8}
+              letterSpacing={0.045}
+              raycast={() => null}
+            >
+              SCIENCE
+              <meshPhysicalMaterial
+                color="#d3a64f"
+                metalness={0.99}
+                roughness={0.17}
+                clearcoat={0.94}
+                clearcoatRoughness={0.11}
+                emissive="#35220a"
+                emissiveIntensity={0.06}
               />
-            </mesh>
-          </group>
+            </Text3D>
+          </Center>
+          <Center position={[0, -0.98, 0]}>
+            <Text3D
+              font={helvetikerBold}
+              size={0.105}
+              height={0.045}
+              bevelEnabled
+              bevelSegments={3}
+              bevelSize={0.005}
+              bevelThickness={0.008}
+              curveSegments={6}
+              letterSpacing={0.04}
+              raycast={() => null}
+            >
+              EVENT MANAGEMENT
+              <meshPhysicalMaterial
+                color="#bd9145"
+                metalness={0.98}
+                roughness={0.2}
+                clearcoat={0.88}
+                clearcoatRoughness={0.14}
+                emissive="#291a08"
+                emissiveIntensity={0.04}
+              />
+            </Text3D>
+          </Center>
         </group>
-      </Float>
+      </group>
       <ContactShadows position={[0, -2.2, 0]} opacity={0.5} scale={9} blur={2.8} far={3.5} />
-    </group>
+    </>
   )
 }
 
@@ -91,8 +240,9 @@ function HeroScene() {
     <Canvas camera={{ position: [0, 0.3, 6.2], fov: 32 }}>
       <color attach="background" args={['#070b12']} />
       <ambientLight intensity={0.8} />
-      <directionalLight position={[4, 5, 5]} intensity={1.5} color="#dfefff" />
-      <pointLight position={[-4, -2, 3]} intensity={1.5} color="#64b5ff" />
+      <directionalLight position={[4, 5, 5]} intensity={1.8} color="#fff0cf" />
+      <pointLight position={[-4, -2, 3]} intensity={1.2} color="#9b7542" />
+      <pointLight position={[0, 1.5, 2.4]} intensity={5} distance={8} color="#ffe0a1" />
       <ResponsiveCamera />
       <group scale={0.86}>
         <ScienceHeroModel />
@@ -331,11 +481,18 @@ function WorldAnchor({ item, index, position, navigate, compact, mobile }) {
     if (!groupRef.current) return
 
     const elapsed = clock.getElapsedTime()
-    const floatRange = mobile ? 0.012 : 0.035
-    const rotationRange = mobile ? 0.018 : 0.045
-    groupRef.current.position.y = Math.sin(elapsed * 0.55 + index * 0.9) * floatRange
-    groupRef.current.rotation.y = Math.sin(elapsed * 0.3 + index) * rotationRange
-    groupRef.current.rotation.x = Math.sin(elapsed * 0.22 + index) * rotationRange * 0.4
+    const phase = elapsed * (0.3 + index * 0.018) + index * 1.13
+    const direction = index % 2 === 0 ? 1 : -1
+    const orbitRange = mobile ? 0.06 : compact ? 0.12 : 0.17
+    const floatRange = mobile ? 0.07 : compact ? 0.12 : 0.15
+    const depthRange = mobile ? 0.065 : compact ? 0.15 : 0.18
+    const rotationRange = mobile ? 0.09 : 0.14
+    groupRef.current.position.x = Math.sin(phase) * orbitRange
+    groupRef.current.position.y = Math.sin(phase * 0.76 + index * 0.45) * floatRange
+    groupRef.current.position.z = Math.cos(phase * 0.68 + index * 0.81) * depthRange
+    groupRef.current.rotation.y = Math.sin(phase * 0.72 + index) * rotationRange * direction
+    groupRef.current.rotation.x = Math.cos(phase * 0.58 + index * 0.7) * rotationRange * 0.42
+    groupRef.current.rotation.z = Math.sin(phase * 0.44 + index * 1.1) * rotationRange * 0.24
   })
 
   function activate(event) {
@@ -361,7 +518,7 @@ function WorldAnchor({ item, index, position, navigate, compact, mobile }) {
             textAlign="center"
             anchorX="center"
             anchorY="top"
-            color={active ? '#f1f6fb' : '#c0ccda'}
+            color={active ? '#f0dfb5' : '#e4cf98'}
             material-toneMapped={false}
           >
             {item.title}
@@ -375,7 +532,7 @@ function WorldAnchor({ item, index, position, navigate, compact, mobile }) {
               textAlign="center"
               anchorX="center"
               anchorY="top"
-              color={active ? '#bacbde' : '#8797aa'}
+              color={active ? '#dfcc9f' : '#c3ad79'}
               material-toneMapped={false}
             >
               {detail}
@@ -413,29 +570,32 @@ function SpatialWorld({ navigate }) {
   const tinyMobile = mobile && size.height < 500
   const compact = size.width < 1100 || aspectRatio < 1.3
   const parallaxRange = mobile ? 0 : compact ? 0.008 : 0.018
+  const narrowMobile = aspectRatio < 0.58
+  const mobileTopX = narrowMobile ? 0.2 : 0.5
+  const mobileSideX = narrowMobile ? 1.08 : 1.34
   const positions = tinyMobile
     ? [
-        [-1.25, 1.7, -2.4], [-1.25, 0.65, -2.4], [-1.25, -0.4, -2.4], [-1.25, -1.4, -2.4],
-        [1.25, 1.7, -2.8], [1.25, 0.65, -2.8], [1.25, -0.4, -2.8], [1.25, -1.4, -2.8],
+        [-0.5, 2.05, -2.9], [-1.34, 0.82, -2.45], [-1.34, -0.82, -2.45], [-0.5, -1.92, -2.9],
+        [0.5, 2.05, -3.15], [1.34, 0.82, -2.75], [1.34, -0.82, -2.75], [0.5, -1.92, -3.15],
       ]
     : mobile
     ? [
-        [-1.13, 1.7, -2.4], [-1.13, 0.65, -2.4], [-1.13, -0.4, -2.4], [-1.13, -1.4, -2.4],
-        [1.13, 1.7, -2.8], [1.13, 0.65, -2.8], [1.13, -0.4, -2.8], [1.13, -1.4, -2.8],
+        [-mobileTopX, 2.05, -2.9], [-mobileSideX, 0.82, -2.45], [-mobileSideX, -0.82, -2.45], [-mobileTopX, -1.92, -2.9],
+        [mobileTopX, 2.05, -3.15], [mobileSideX, 0.82, -2.75], [mobileSideX, -0.82, -2.75], [mobileTopX, -1.92, -3.15],
       ]
     : portraitTablet
       ? [
-          [-1.6, 2.25, -3], [-1.6, 1.05, -2.4], [-1.6, -0.65, -1.8], [-1.6, -1.9, -2.6],
-          [1.6, 2.25, -3], [1.6, 1.05, -2], [1.6, -0.65, -2.15], [1.6, -1.9, -2.6],
+          [-1, 2.05, -3.05], [-1.9, 0.72, -2.65], [-1.9, -0.72, -2.4], [-1, -1.88, -3.05],
+          [1, 2.05, -3.3], [1.9, 0.72, -2.85], [1.9, -0.72, -2.65], [1, -1.88, -3.3],
         ]
       : compact
       ? [
-          [-1.95, 2.6, -3], [-1.95, 1.4, -2.4], [-1.95, -0.45, -1.8], [-1.95, -1.85, -2.6],
-          [1.95, 2.6, -3], [1.95, 1.4, -2], [1.95, -0.45, -2.15], [1.95, -1.85, -2.6],
+          [-1.9, 1.92, -3.1], [-2.9, 0.68, -2.75], [-2.9, -0.68, -2.5], [-1.9, -1.78, -3.1],
+          [1.9, 1.92, -3.35], [2.9, 0.68, -2.95], [2.9, -0.68, -2.75], [1.9, -1.78, -3.35],
         ]
       : [
-          [-2.6, 1.8, -3.2], [-2.9, 0.65, -3], [-2.9, -0.5, -3], [-2.9, -1.65, -3.6],
-          [2.6, 1.8, -3.2], [2.9, 0.65, -3], [2.9, -0.5, -3], [2.9, -1.65, -3.6],
+          [-1.8, 1.8, -3.1], [-3.45, 0.55, -2.75], [-3.45, -0.55, -2.5], [-1.8, -1.72, -3.1],
+          [1.8, 1.8, -3.35], [3.45, 0.55, -2.95], [3.45, -0.55, -2.75], [1.8, -1.72, -3.35],
         ]
 
   useFrame(({ pointer }) => {

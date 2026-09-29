@@ -3,12 +3,12 @@
   --bg-soft: #0d1521;
   --panel: rgba(17, 22, 30, 0.75);
   --panel-strong: rgba(12, 18, 28, 0.9);
-  --line: rgba(163, 184, 205, 0.2);
-  --text: #edf4ff;
-  --muted: #9aa8ba;
-  --steel: #c7d7f7;
-  --silver: #b7c5d9;
-  --cyan: #8fd2ff;
+  --line: rgba(199, 172, 112, 0.22);
+  --text: #ead7a7;
+  --muted: #c2ac7a;
+  --steel: #dfc993;
+  --silver: #d3bd86;
+  --cyan: #d9c18a;
   --shadow: rgba(0, 0, 0, 0.45);
   font-family: 'Inter', sans-serif;
   color: var(--text);
