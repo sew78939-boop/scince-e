@@ -378,6 +378,58 @@ select {
   background: linear-gradient(135deg, rgba(17, 30, 41, 0.84), rgba(8, 12, 18, 0.9));
 }
 
+.privacy-intro {
+  min-height: 0;
+  margin-bottom: 22px;
+}
+
+.privacy-intro p:first-child {
+  margin-top: 0;
+}
+
+.privacy-sections {
+  display: grid;
+  gap: 16px;
+}
+
+.privacy-section {
+  min-height: 0;
+}
+
+.privacy-section h4 {
+  margin: 10px 0 0;
+  font-size: clamp(1.2rem, 2vw, 1.6rem);
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+
+.privacy-section p,
+.privacy-section li {
+  max-width: 90ch;
+  line-height: 1.75;
+}
+
+.privacy-section ul {
+  display: grid;
+  gap: 6px;
+  padding-inline-start: 24px;
+  color: var(--muted);
+}
+
+.privacy-section .mini-label {
+  color: var(--steel);
+}
+
+.privacy-section a {
+  color: var(--steel);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.privacy-last-updated {
+  color: var(--muted);
+}
+
 .page-panel h4 {
   margin: 18px 0 0;
   max-width: 22ch;
@@ -604,6 +656,21 @@ select {
   min-width: 0;
   color: var(--muted);
   font-size: 0.76rem;
+}
+
+.consent label {
+  display: inline;
+}
+
+.consent a {
+  color: var(--steel);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.consent a:focus-visible {
+  outline: 1px solid var(--gold);
+  outline-offset: 3px;
 }
 
 .consent input {

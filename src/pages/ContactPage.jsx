@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router'
 import { contactInfo } from '../data/siteData'
 import { useLanguage } from '../i18n'
 
@@ -185,10 +186,14 @@ export default function ContactPage() {
         </div>
 
         <div className="form-footer">
-          <label className="consent">
-            <input type="checkbox" name="contactConsent" value="Agreed" required />
-            <span>{t('I agree to be contacted regarding my inquiry.')}</span>
-          </label>
+          <div className="consent">
+            <input id="contact-consent" type="checkbox" name="contactConsent" value="Agreed" required />
+            <label htmlFor="contact-consent">
+              {t('I agree to be contacted regarding my inquiry. I have read and acknowledge the')}
+              {' '}
+              <Link to="/privacy-policy">{t('Privacy Policy')}</Link>.
+            </label>
+          </div>
 
           {submissionMessage && (
             <p className="form-field-full" role="status" aria-live="polite">

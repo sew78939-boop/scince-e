@@ -12,6 +12,7 @@ import ExperienceStepPage from './pages/ExperienceStepPage'
 import FounderPage from './pages/FounderPage'
 import HomePage from './pages/HomePage'
 import NotFoundPage from './pages/NotFoundPage'
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage'
 import ProjectDetailPage from './pages/ProjectDetailPage'
 import ServicesPage from './pages/ServicesPage'
 import ServiceDetailPage from './pages/ServiceDetailPage'
@@ -159,6 +160,7 @@ function App() {
           <Route path="/team/:teamSlug" element={<TeamRolePage />} />
           <Route path="/social" element={<SocialLinksPage />} />
           <Route path="/contact" element={<ContactPage />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </main>
