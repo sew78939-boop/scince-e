@@ -107,6 +107,35 @@ export default function HomePage() {
         </div>
       </section>
 
+      <section className="section-wrap" id="team">
+        <div className="section-heading">
+          <p className="kicker">{t('Our Team')}</p>
+          <h3>{t('Creative minds, production specialists, and operational leaders working together.')}</h3>
+        </div>
+
+        <div className="team-grid">
+          {[founderProfile, ayaProfile, jowanaProfile, hayaProfile, meiraProfile].map((profile) => (
+            <Link
+              key={profile.slug}
+              className="team-card person-card"
+              to={`/team/${profile.slug}`}
+              aria-label={`${t('View profile:')} ${t(profile.name)}`}
+            >
+              <div
+                className="team-avatar"
+                role="img"
+                aria-label={t(profile.name)}
+                style={{ backgroundImage: `linear-gradient(180deg, rgba(10, 15, 22, 0.12), rgba(7, 11, 18, 0.28)), url(${profile.image})` }}
+              />
+              <div className="team-card-copy">
+                <h4>{t(profile.name)}</h4>
+                <p className="person-position">{t(profile.position)}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
       <section className="section-wrap" id="work">
         <div className="section-heading section-heading--events">
           <p className="kicker">{t('Our events')}</p>
@@ -154,35 +183,6 @@ export default function HomePage() {
             >
               <span className="journey-step-label">{t(step)}</span>
               <p>{t(label)}</p>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      <section className="section-wrap" id="team">
-        <div className="section-heading">
-          <p className="kicker">{t('Our Team')}</p>
-          <h3>{t('Creative minds, production specialists, and operational leaders working together.')}</h3>
-        </div>
-
-        <div className="team-grid">
-          {[founderProfile, ayaProfile, jowanaProfile, hayaProfile, meiraProfile].map((profile) => (
-            <Link
-              key={profile.slug}
-              className="team-card person-card"
-              to={`/team/${profile.slug}`}
-              aria-label={`${t('View profile:')} ${t(profile.name)}`}
-            >
-              <div
-                className="team-avatar"
-                role="img"
-                aria-label={t(profile.name)}
-                style={{ backgroundImage: `linear-gradient(180deg, rgba(10, 15, 22, 0.12), rgba(7, 11, 18, 0.28)), url(${profile.image})` }}
-              />
-              <div className="team-card-copy">
-                <h4>{t(profile.name)}</h4>
-                <p className="person-position">{t(profile.position)}</p>
-              </div>
             </Link>
           ))}
         </div>

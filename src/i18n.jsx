@@ -18,6 +18,8 @@ const arabicTranslations = {
   'Contact Us': 'تواصل معنا',
   'Switch to Arabic': 'التبديل إلى العربية',
   'Switch to English': 'التبديل إلى الإنجليزية',
+  'Open menu': 'فتح القائمة',
+  'Close menu': 'إغلاق القائمة',
   Facebook: 'فيسبوك',
   Instagram: 'إنستجرام',
   WhatsApp: 'واتساب',

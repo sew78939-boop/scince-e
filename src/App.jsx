@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, Route, Routes, useLocation } from 'react-router'
 import { ayaProfile, contactInfo, hayaProfile, jowanaProfile, meiraProfile, navItems } from './data/siteData'
 import { useLanguage } from './i18n'
@@ -22,11 +22,13 @@ import WorkPage from './pages/WorkPage'
 
 function App() {
   const cursorRef = useRef(null)
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
   const { pathname } = useLocation()
   const { language, setLanguage, t } = useLanguage()
 
   useEffect(() => {
     window.scrollTo(0, 0)
+    setIsMenuOpen(false)
   }, [pathname])
 
   useEffect(() => {
@@ -95,22 +97,45 @@ function App() {
           <ScienceWordmark className="brand-mark" />
         </Link>
 
-        <nav className="main-nav" aria-label={t('Main navigation')}>
+        <nav
+          className={`main-nav${isMenuOpen ? ' is-open' : ''}`}
+          id="main-navigation"
+          aria-label={t('Main navigation')}
+        >
           {navItems.map((item) => (
-            <NavLink key={item.to} to={item.to} end={item.to === '/'}>
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.to === '/'}
+              onClick={() => setIsMenuOpen(false)}
+            >
               {t(item.label)}
             </NavLink>
           ))}
         </nav>
-        <button
-          className="language-toggle"
-          type="button"
-          onClick={() => setLanguage(language === 'en' ? 'ar' : 'en')}
-          aria-label={t(language === 'en' ? 'Switch to Arabic' : 'Switch to English')}
-          title={t(language === 'en' ? 'Switch to Arabic' : 'Switch to English')}
-        >
-          {language === 'en' ? 'العربية' : 'English'}
-        </button>
+        <div className="header-controls">
+          <button
+            className="menu-toggle"
+            type="button"
+            onClick={() => setIsMenuOpen((open) => !open)}
+            aria-label={t(isMenuOpen ? 'Close menu' : 'Open menu')}
+            aria-expanded={isMenuOpen}
+            aria-controls="main-navigation"
+          >
+            <span />
+            <span />
+            <span />
+          </button>
+          <button
+            className="language-toggle"
+            type="button"
+            onClick={() => setLanguage(language === 'en' ? 'ar' : 'en')}
+            aria-label={t(language === 'en' ? 'Switch to Arabic' : 'Switch to English')}
+            title={t(language === 'en' ? 'Switch to Arabic' : 'Switch to English')}
+          >
+            {language === 'en' ? 'العربية' : 'English'}
+          </button>
+        </div>
       </header>
 
       <main>
