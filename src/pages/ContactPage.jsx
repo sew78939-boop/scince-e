@@ -18,12 +18,14 @@ const inquiryServices = [
 export default function ContactPage() {
   const { t } = useLanguage()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [hasSubmitted, setHasSubmitted] = useState(false)
+  const [hasOpenedEmailDraft, setHasOpenedEmailDraft] = useState(false)
   const [submissionMessage, setSubmissionMessage] = useState('')
 
   const handleInquirySubmit = async (event) => {
     event.preventDefault()
 
-    if (isSubmitting) return
+    if (isSubmitting || hasSubmitted || hasOpenedEmailDraft) return
 
     const form = event.currentTarget
     const formData = new FormData(form)
@@ -49,6 +51,7 @@ export default function ContactPage() {
       ].join('\n')
       const subject = encodeURIComponent(`${t('Event enquiry')} - ${name}`)
       setSubmissionMessage(t('Your email app will open. Send the prepared message to complete your inquiry.'))
+      setHasOpenedEmailDraft(true)
       window.location.href = `mailto:${recipient}?subject=${subject}&body=${encodeURIComponent(message)}`
       return
     }
@@ -71,6 +74,7 @@ export default function ContactPage() {
       }
 
       form.reset()
+      setHasSubmitted(true)
       setSubmissionMessage(t('Your inquiry was sent successfully. We will be in touch soon.'))
     } catch {
       setSubmissionMessage(t('We could not send your inquiry. Please try again or contact us by email.'))
@@ -201,8 +205,18 @@ export default function ContactPage() {
             </p>
           )}
 
-          <button type="submit" disabled={isSubmitting}>
-            {t(isSubmitting ? 'SENDING INQUIRY' : formspreeFormId ? 'SEND INQUIRY' : 'Send Inquiry')}
+          <button type="submit" disabled={isSubmitting || hasSubmitted || hasOpenedEmailDraft}>
+            {t(
+              hasSubmitted
+                ? 'INQUIRY ALREADY SENT'
+                : hasOpenedEmailDraft
+                  ? 'EMAIL DRAFT ALREADY OPENED'
+                : isSubmitting
+                  ? 'SENDING INQUIRY'
+                  : formspreeFormId
+                    ? 'SEND INQUIRY'
+                    : 'Send Inquiry',
+            )}
             <span aria-hidden="true">→</span>
           </button>
         </div>

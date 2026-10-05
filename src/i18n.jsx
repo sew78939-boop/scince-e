@@ -234,6 +234,8 @@ const arabicTranslations = {
   'OPEN EMAIL DRAFT': 'افتح مسودة البريد',
   'SEND INQUIRY': 'إرسال الطلب',
   'SENDING INQUIRY': 'جارٍ إرسال الطلب',
+  'INQUIRY ALREADY SENT': 'تم إرسال الطلب بالفعل',
+  'EMAIL DRAFT ALREADY OPENED': 'تم فتح مسودة البريد بالفعل',
   'Your email app will open. Send the prepared message to complete your inquiry.': 'سيفتح تطبيق البريد لديك. أرسل الرسالة المُعدّة لإكمال طلبك.',
   'We could not send your inquiry. Please try again or contact us by email.': 'تعذر إرسال طلبك. حاول مرة أخرى أو تواصل معنا عبر البريد الإلكتروني.',
   'Your inquiry was sent successfully. We will be in touch soon.': 'تم إرسال طلبك بنجاح. سنتواصل معك قريبًا.',
