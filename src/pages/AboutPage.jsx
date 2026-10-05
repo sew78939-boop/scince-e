@@ -1,41 +1,50 @@
+import { Link } from 'react-router'
 import { services } from '../data/siteData'
+import { useLanguage } from '../i18n'
 
 export default function AboutPage() {
+  const { t } = useLanguage()
+
   return (
     <section className="page-shell section-wrap">
       <div className="section-heading">
-        <p className="kicker">ABOUT</p>
-        <h3>SCIENCE EVENT MANAGEMENT.</h3>
+        <p className="kicker">{t('ABOUT US')}</p>
+        <h3>{t('SCIENCE EVENT MANAGEMENT')}</h3>
       </div>
 
       <div className="page-grid page-grid--two">
         <article className="page-panel page-panel--feature">
-          <p className="mini-label">INTRO</p>
-          <h4>We create meaningful, high-impact experiences.</h4>
+          <p className="mini-label">{t('WHO WE ARE')}</p>
+          <h4>{t('We create meaningful, high-impact experiences')}</h4>
         </article>
 
         <article className="page-panel">
-          <p className="mini-label">VISION</p>
-          <p>To shape elegant, memorable, and operationally precise experiences for science-led audiences.</p>
+          <p className="mini-label">{t('VISION')}</p>
+          <p>{t('To shape elegant, memorable, and operationally precise experiences for science-led audiences')}</p>
         </article>
 
         <article className="page-panel">
-          <p className="mini-label">MISSION</p>
-          <p>To connect strategy, production, and design into a clear and compelling event journey.</p>
+          <p className="mini-label">{t('MISSION')}</p>
+          <p>{t('To connect strategy, production, and design into a clear and compelling event journey')}</p>
         </article>
 
         <article className="page-panel">
-          <p className="mini-label">WHY SCIENCE</p>
-          <p>Because the most persuasive experiences are rooted in purpose, clarity, and careful execution.</p>
+          <p className="mini-label">{t('WHY SCIENCE')}</p>
+          <p>{t('Because the most persuasive experiences are rooted in purpose, clarity, and careful execution')}</p>
         </article>
       </div>
 
       <div className="three-panel-grid panel-row">
         {services.map((service) => (
-          <article key={service.title} className="page-card">
-            <span>{service.title}</span>
-            <p>{service.description}</p>
-          </article>
+          <Link
+            key={service.slug}
+            className="page-card service-link-card"
+            to={`/services/${service.slug}`}
+            aria-label={`${t('View service:')} ${t(service.title)}`}
+          >
+            <span>{t(service.title)}</span>
+            <p>{t(service.description)}</p>
+          </Link>
         ))}
       </div>
     </section>

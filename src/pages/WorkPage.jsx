@@ -1,25 +1,37 @@
+import { Link } from 'react-router'
 import { projectPillars } from '../data/siteData'
+import { useLanguage } from '../i18n'
 
 export default function WorkPage() {
+  const { t } = useLanguage()
+
   return (
     <section className="page-shell section-wrap">
       <div className="section-heading">
-        <p className="kicker">OUR WORK</p>
-        <h3>Selected project environments.</h3>
+        <p className="kicker">{t('OUR EVENTS')}</p>
+        <h3>{t('Selected project environments.')}</h3>
       </div>
 
       <div className="project-grid page-grid--three">
         {projectPillars.map((project) => (
-          <article key={project.name} className="project-card project-card--page">
+          <Link
+            key={project.slug}
+            className="project-card project-card--page"
+            to={`/our-work/${project.slug}`}
+            aria-label={`${t('View event:')} ${t(project.name)}`}
+          >
             <div className="project-media" aria-hidden="true">
-              <div className="project-visual" />
+              <div
+                className="project-visual"
+                style={{ backgroundImage: `linear-gradient(180deg, rgba(10, 15, 22, 0.1), rgba(7,11,18,0.38)), url(${project.image})` }}
+              />
             </div>
             <div className="project-copy">
-              <span className="status-tag">{project.status}</span>
-              <h4>{project.name}</h4>
-              <p>{project.label}</p>
+                <span className="status-tag">{t(project.status)}</span>
+                <h4>{t(project.name)}</h4>
+                <p>{t(project.label)}</p>
             </div>
-          </article>
+          </Link>
         ))}
       </div>
     </section>

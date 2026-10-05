@@ -1,31 +1,32 @@
-import { gallery } from '../data/siteData'
+import { Link } from 'react-router'
+import { projectPillars } from '../data/siteData'
+import { useLanguage } from '../i18n'
 
 export default function CaseStudiesPage() {
+  const { t } = useLanguage()
+  const completedProjects = projectPillars.filter((project) => project.status === 'COMPLETED')
+
   return (
     <section className="page-shell section-wrap">
       <div className="section-heading">
-        <p className="kicker">CASE STUDIES</p>
-        <h3>Scientific content, confident delivery, and public impact.</h3>
+        <p className="kicker">{t('SELECTED COMPLETED EVENTS')}</p>
+        <h3>{t('Scientific events delivered by Science.')}</h3>
       </div>
 
-      <div className="page-grid page-grid--two">
-        <article className="page-panel page-panel--feature">
-          <p className="mini-label">PROJECT FOCUS</p>
-          <h4>Scientific events designed to feel premium, clear, and human.</h4>
-        </article>
-
-        <article className="page-panel">
-          <p className="mini-label">DELIVERY</p>
-          <p>From pre-production planning to guest experience design, each project is built around mission clarity.</p>
-        </article>
-      </div>
-
-      <div className="three-panel-grid">
-        {gallery.map((item) => (
-          <article key={item} className="page-card">
-            <span>{item}</span>
-            <p>Experience layer designed for clarity, identity, and audience engagement.</p>
-          </article>
+      <div className="case-study-list">
+        {completedProjects.map((project) => (
+          <Link
+            key={project.slug}
+            className="case-study-link"
+            to={`/our-work/${project.slug}`}
+            aria-label={`${t('View event:')} ${t(project.name)}`}
+          >
+            <div className="case-study-copy">
+              <p className="mini-label">{t(project.label)} / {t(project.status)}</p>
+              <h4>{t(project.name)}</h4>
+            </div>
+            <span className="case-study-action">{t('VIEW EVENT')}</span>
+          </Link>
         ))}
       </div>
     </section>
