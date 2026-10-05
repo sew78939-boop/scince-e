@@ -1,4 +1,5 @@
 
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router'
 import ScienceWordmark from '../components/ScienceWordmark'
 import heroVideo from '../assets/hero/hero.mp4'
@@ -15,6 +16,115 @@ import {
   services,
 } from '../data/siteData'
 import { useLanguage } from '../i18n'
+
+const videoCrossfadeDuration = 0.8
+
+function LoopingHeroVideo() {
+  const videoRefs = useRef([])
+  const playbackRef = useRef({ activeIndex: 0, nextIndex: null })
+  const [visibleIndex, setVisibleIndex] = useState(0)
+
+  useEffect(() => {
+    const videos = videoRefs.current
+    const timers = new Set()
+
+    const playVideo = (video) => {
+      video.play().catch((error) => {
+        if (error.name !== 'AbortError') {
+          console.error('Hero video playback failed:', error)
+        }
+      })
+    }
+
+    const finishTransition = (previousIndex, nextIndex) => {
+      const previousVideo = videos[previousIndex]
+      previousVideo.pause()
+      previousVideo.currentTime = 0
+      playbackRef.current = { activeIndex: nextIndex, nextIndex: null }
+    }
+
+    const handleTimeUpdate = (index) => {
+      const { activeIndex, nextIndex } = playbackRef.current
+      const video = videos[index]
+
+      if (
+        index !== activeIndex
+        || nextIndex !== null
+        || !Number.isFinite(video.duration)
+        || video.duration - video.currentTime > videoCrossfadeDuration
+      ) {
+        return
+      }
+
+      const incomingIndex = 1 - index
+      const incomingVideo = videos[incomingIndex]
+      playbackRef.current.nextIndex = incomingIndex
+      incomingVideo.currentTime = 0
+      setVisibleIndex(incomingIndex)
+      playVideo(incomingVideo)
+    }
+
+    const handleEnded = (index) => {
+      const { activeIndex, nextIndex } = playbackRef.current
+      if (index !== activeIndex) return
+
+      if (nextIndex !== null) {
+        finishTransition(index, nextIndex)
+        return
+      }
+
+      const incomingIndex = 1 - index
+      const incomingVideo = videos[incomingIndex]
+      playbackRef.current.nextIndex = incomingIndex
+      incomingVideo.currentTime = 0
+      setVisibleIndex(incomingIndex)
+      playVideo(incomingVideo)
+
+      const timer = window.setTimeout(() => {
+        timers.delete(timer)
+        if (playbackRef.current.nextIndex === incomingIndex) {
+          finishTransition(index, incomingIndex)
+        }
+      }, videoCrossfadeDuration * 1000)
+      timers.add(timer)
+    }
+
+    const listeners = videos.map((video, index) => {
+      const onTimeUpdate = () => handleTimeUpdate(index)
+      const onEnded = () => handleEnded(index)
+      video.addEventListener('timeupdate', onTimeUpdate)
+      video.addEventListener('ended', onEnded)
+      return { video, onTimeUpdate, onEnded }
+    })
+    playVideo(videos[0])
+
+    return () => {
+      listeners.forEach(({ video, onTimeUpdate, onEnded }) => {
+        video.pause()
+        video.removeEventListener('timeupdate', onTimeUpdate)
+        video.removeEventListener('ended', onEnded)
+      })
+      timers.forEach((timer) => window.clearTimeout(timer))
+    }
+  }, [])
+
+  return [0, 1].map((index) => (
+    <video
+      key={index}
+      ref={(video) => {
+        videoRefs.current[index] = video
+      }}
+      className="hero-media-video"
+      aria-hidden="true"
+      muted
+      playsInline
+      preload={index === 0 ? 'auto' : 'metadata'}
+      style={{ opacity: visibleIndex === index ? 1 : 0 }}
+    >
+      <source src={heroVideo} type="video/mp4" />
+    </video>
+  ))
+}
 
 export default function HomePage() {
   const { t } = useLanguage()
@@ -47,9 +157,7 @@ export default function HomePage() {
 
         <div className="hero-media-panel" aria-label={t('Featured event summary')}>
           <div className="hero-media-image" aria-hidden="true">
-            <video className="hero-media-video" autoPlay muted loop playsInline preload="metadata">
-              <source src={heroVideo} type="video/mp4" />
-            </video>
+            <LoopingHeroVideo />
           </div>
           <div className="hero-media-copy">
             <span className="feature-tag">{t('THE SCIENCE APPROACH')}</span>
